@@ -55,6 +55,7 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 		Dir:         r.Replace(origTask.Dir),
 		Vars:        nil,
 		Env:         nil,
+		CacheStatus: origTask.CacheStatus,
 		Silent:      origTask.Silent,
 		Interactive: origTask.Interactive,
 		Method:      r.Replace(origTask.Method),
@@ -132,6 +133,7 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 	}
 
 	if len(origTask.Status) > 0 {
+		// Evaluate the live variables {{.CHECKSUM}} and {{.TIMESTAMP}}
 		for _, checker := range []status.Checker{e.timestampChecker(&new), e.checksumChecker(&new)} {
 			value, err := checker.Value()
 			if err != nil {
