@@ -61,6 +61,7 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 		Prefix:      r.Replace(origTask.Prefix),
 		IgnoreError: origTask.IgnoreError,
 		Run:         r.Replace(origTask.Run),
+		InitScript:  r.Replace(origTask.InitScript),
 	}
 	new.Dir, err = execext.Expand(new.Dir)
 	if err != nil {

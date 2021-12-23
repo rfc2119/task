@@ -442,12 +442,13 @@ func (e *Executor) runCommand(ctx context.Context, t *taskfile.Task, call taskfi
 		}()
 
 		err := execext.RunCommand(ctx, &execext.RunCommandOptions{
-			Command: cmd.Cmd,
-			Dir:     t.Dir,
-			Env:     getEnviron(t),
-			Stdin:   e.Stdin,
-			Stdout:  stdOut,
-			Stderr:  stdErr,
+			InitScript: t.InitScript,
+			Command:    cmd.Cmd,
+			Dir:        t.Dir,
+			Env:        getEnviron(t),
+			Stdin:      e.Stdin,
+			Stdout:     stdOut,
+			Stderr:     stdErr,
 		})
 		if execext.IsExitError(err) && cmd.IgnoreError {
 			e.Logger.VerboseErrf(logger.Yellow, "task: [%s] command error ignored: %v", t.Name(), err)

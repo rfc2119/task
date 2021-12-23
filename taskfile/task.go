@@ -6,6 +6,7 @@ type Tasks map[string]*Task
 // Task represents a task
 type Task struct {
 	Task          string
+	InitScript    string
 	Cmds          []*Cmd
 	Deps          []*Dep
 	Label         string
@@ -47,6 +48,7 @@ func (t *Task) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 
 	var task struct {
+		InitScript    string `yaml:"init_script"`
 		Cmds          []*Cmd
 		Deps          []*Dep
 		Label         string
@@ -69,6 +71,7 @@ func (t *Task) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&task); err != nil {
 		return err
 	}
+	t.InitScript = task.InitScript
 	t.Cmds = task.Cmds
 	t.Deps = task.Deps
 	t.Label = task.Label
