@@ -3,6 +3,7 @@ package task
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/go-task/task/v3/internal/logger"
@@ -24,6 +25,24 @@ func (e *Executor) PrintTasksHelp() {
 		fmt.Fprintf(w, "* %s: \t%s\n", task.Name(), task.Desc)
 	}
 	w.Flush()
+}
+
+// TODO: refgactor me into PrintTasksHelp()
+func (e *Executor) FancyPrintTasksHelp() {
+	tasks := e.tasksWithDesc()
+	if len(tasks) == 0 {
+		e.Logger.Outf(logger.Yellow, "task: No tasks with description available")
+		return
+	}
+	w := new(strings.Builder)
+	w.WriteString("Task | Description |\n-----|:-----------|\n")
+
+	for _, task := range tasks {
+		fmt.Fprintf(w, "%s|%s|\n", task.Name(), task.Desc)
+	}
+	if out, err := e.FancyLogger.Render(w.String()); err == nil {
+		fmt.Print(out)
+	}
 }
 
 func (e *Executor) tasksWithDesc() (tasks []*taskfile.Task) {
