@@ -1,6 +1,7 @@
 module github.com/go-task/task/v3
 
 require (
+	github.com/AlecAivazis/survey/v2 v2.3.2
 	github.com/fatih/color v1.13.0
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0
 	github.com/joho/godotenv v1.4.0
