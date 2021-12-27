@@ -9,7 +9,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/charmbracelet/glamour"
 	"github.com/go-task/task/v3/internal/compiler"
 	compilerv2 "github.com/go-task/task/v3/internal/compiler/v2"
 	compilerv3 "github.com/go-task/task/v3/internal/compiler/v3"
@@ -50,7 +49,7 @@ type Executor struct {
 	Stderr io.Writer
 
 	Logger      *logger.Logger
-	FancyLogger *glamour.TermRenderer
+	FancyLogger *logger.FancyLogger
 	Compiler    compiler.Compiler
 	Output      output.Output
 	OutputStyle string
@@ -144,15 +143,7 @@ func (e *Executor) Setup() error {
 		Verbose: e.Verbose,
 		Color:   e.Color,
 	}
-	fancyLogger, err := glamour.NewTermRenderer(
-		// detect background color and pick either the default dark or light theme
-		glamour.WithAutoStyle(),
-	)
-	if err != nil {
-		e.Logger.VerboseOutf(logger.Red, "error initializing fancy logger: %v", err)
-		e.FancyLogger = nil
-	}
-	e.FancyLogger = fancyLogger
+	e.FancyLogger = logger.NewFancyLogger().SetStderr(e.Stderr).SetStdout(e.Stdout)
 
 	if v < 2 {
 		return fmt.Errorf(`task: Taskfile versions prior to v2 are not supported anymore`)
