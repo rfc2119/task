@@ -1,6 +1,10 @@
 module github.com/go-task/task/v3
 
 require (
+	github.com/charmbracelet/bubbles v0.9.0
+	github.com/charmbracelet/bubbletea v0.14.1
+	github.com/charmbracelet/lipgloss v0.3.0
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.13.0
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0
 	github.com/joho/godotenv v1.4.0

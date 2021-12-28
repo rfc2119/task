@@ -154,11 +154,6 @@ func main() {
 		return
 	}
 
-	if list {
-		e.PrintTasksHelp()
-		return
-	}
-
 	var (
 		calls   []taskfile.Call
 		globals *taskfile.Vars
@@ -187,6 +182,16 @@ func main() {
 		if err := e.Status(ctx, calls...); err != nil {
 			log.Fatal(err)
 		}
+		return
+	}
+
+	if list {
+		// e.PrintTasksHelp()
+		// return
+		if err := e.RunUI(ctx); err != nil {
+			fmt.Println("error running interface:", err)
+		}
+		fmt.Println("returned from bubbleteam")
 		return
 	}
 
