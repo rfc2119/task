@@ -30,14 +30,15 @@ var (
 )
 
 // RunCommand runs a shell command
-func RunCommand(ctx context.Context, opts *RunCommandOptions) error {
+// The returned Runner may be used for subsequent commands
+func RunCommand(ctx context.Context, opts *RunCommandOptions, r *interp.Runner) (*interp.Runner, error) {
 	if opts == nil {
-		return ErrNilOptions
+		return r, ErrNilOptions
 	}
 
 	p, err := syntax.NewParser().Parse(strings.NewReader(opts.Command), "")
 	if err != nil {
-		return err
+		return r, err
 	}
 
 	environ := opts.Env
@@ -45,17 +46,20 @@ func RunCommand(ctx context.Context, opts *RunCommandOptions) error {
 		environ = os.Environ()
 	}
 
-	r, err := interp.New(
-		interp.Params("-e"),
-		interp.Dir(opts.Dir),
-		interp.Env(expand.ListEnviron(environ...)),
-		interp.OpenHandler(openHandler),
-		interp.StdIO(opts.Stdin, opts.Stdout, opts.Stderr),
-	)
-	if err != nil {
-		return err
+	// Create a new command runner if no runner was passed
+	if r == nil {
+		r, err = interp.New(
+			interp.Params("-e"),
+			interp.Dir(opts.Dir),
+			interp.Env(expand.ListEnviron(environ...)),
+			interp.OpenHandler(openHandler),
+			interp.StdIO(opts.Stdin, opts.Stdout, opts.Stderr),
+		)
+		if err != nil {
+			return r, err
+		}
 	}
-	return r.Run(ctx, p)
+	return r, r.Run(ctx, p)
 }
 
 // IsExitError returns true the given error is an exis status error

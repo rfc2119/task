@@ -27,8 +27,10 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 		return nil, &taskNotFoundError{call.Task}
 	}
 
-	var vars *taskfile.Vars
-	var err error
+	var (
+		vars *taskfile.Vars
+		err  error
+	)
 	if evaluateShVars {
 		vars, err = e.Compiler.GetVariables(origTask, call)
 	} else {
@@ -70,6 +72,7 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 		Run:         r.Replace(origTask.Run),
 		Prompt:      replacePrompt,
 		Hide:        r.Replace(origTask.Hide),
+		ShellRc:     r.Replace(origTask.ShellRc),
 	}
 	newT.Dir, err = execext.Expand(newT.Dir)
 	if err != nil {
@@ -157,5 +160,10 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 		newT.Status = r.ReplaceSlice(origTask.Status)
 	}
 
-	return &newT, r.Err()
+	// Source global init script
+	if origTask.ShellRc == "" {
+		new.ShellRc = e.Taskfile.ShellRc
+	}
+
+	return &new, r.Err()
 }

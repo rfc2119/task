@@ -21,6 +21,7 @@ import (
 	"github.com/go-task/task/v3/internal/summary"
 	"github.com/go-task/task/v3/taskfile"
 	"github.com/go-task/task/v3/taskfile/read"
+	"mvdan.cc/sh/v3/interp"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -326,6 +327,7 @@ func (e *Executor) RunTask(ctx context.Context, call taskfile.Call) error {
 
 	return e.startExecution(ctx, t, func(ctx context.Context) error {
 		e.Logger.VerboseErrf(logger.Magenta, `task: "%s" started`, call.Task)
+		e.Logger.VerboseErrf(logger.Magenta, `shell rc after CompiledTask: %s`, t.ShellRc)
 		if err := e.runDeps(ctx, t); err != nil {
 			return err
 		}
@@ -357,13 +359,31 @@ func (e *Executor) RunTask(ctx context.Context, call taskfile.Call) error {
 			e.Logger.Errf(logger.Red, "task: cannot make directory %q: %v", t.Dir, err)
 		}
 
+		// NOTE: should prompts support shellRc ?
 		if t.Prompt != nil {
 			if err := e.runPrompt(ctx, t); err != nil {
 				e.Logger.Errf(logger.Red, "task: prompt execution failed: %v", err)
 			}
 		}
+
+		// Execute the initial shell script then pass the returned runner to each command
+		var runner *interp.Runner = nil
+		if t.ShellRc != "" {
+			runner, err = execext.RunCommand(ctx, &execext.RunCommandOptions{
+				Command: t.ShellRc,
+				Dir:     t.Dir,
+				Env:     getEnviron(t),
+				Stdin:   e.Stdin,
+				Stdout:  e.Stdout, // TODO: support Prefix
+				Stderr:  e.Stderr,
+			}, nil)
+			if execext.IsExitError(err) {
+				e.Logger.VerboseErrf(logger.Yellow, "task: [%s] error executing initial script: %v", t.Name(), err)
+			}
+		}
+
 		for i := range t.Cmds {
-			if err := e.runCommand(ctx, t, i); err != nil {
+			if err := e.runCommand(ctx, t, call, i, runner); err != nil {
 				if err2 := e.statusOnError(t); err2 != nil {
 					e.Logger.VerboseErrf(logger.Yellow, "task: error cleaning status on error: %v", err2)
 				}
@@ -419,8 +439,7 @@ func (e *Executor) runDeps(ctx context.Context, t *taskfile.Task) error {
 	return g.Wait()
 }
 
-// Runs a single command of index i from t.Cmds
-func (e *Executor) runCommand(ctx context.Context, t *taskfile.Task, i int) error {
+func (e *Executor) runCommand(ctx context.Context, t *taskfile.Task, call taskfile.Call, i int, runner *interp.Runner) error {
 	cmd := t.Cmds[i]
 
 	switch {
@@ -462,14 +481,14 @@ func (e *Executor) runCommand(ctx context.Context, t *taskfile.Task, i int) erro
 			}
 		}()
 
-		err := execext.RunCommand(ctx, &execext.RunCommandOptions{
+		_, err := execext.RunCommand(ctx, &execext.RunCommandOptions{
 			Command: cmd.Cmd,
 			Dir:     t.Dir,
 			Env:     getEnviron(t),
 			Stdin:   e.Stdin,
 			Stdout:  stdOut,
 			Stderr:  stdErr,
-		})
+		}, runner)
 		if execext.IsExitError(err) && cmd.IgnoreError {
 			e.Logger.VerboseErrf(logger.Yellow, "task: [%s] command error ignored: %v", t.Name(), err)
 			return nil
