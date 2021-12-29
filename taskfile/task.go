@@ -25,6 +25,8 @@ type Task struct {
 	IgnoreError   bool
 	Run           string
 	Prompt        *Prompt
+	// TODO: Hide should be bool but we want Go templates
+	Hide string
 }
 
 func (t *Task) Name() string {
@@ -67,6 +69,7 @@ func (t *Task) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		IgnoreError   bool `yaml:"ignore_error"`
 		Run           string
 		Prompt        *Prompt
+		Hide          string
 	}
 	if err := unmarshal(&task); err != nil {
 		return err
@@ -90,5 +93,6 @@ func (t *Task) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	t.IgnoreError = task.IgnoreError
 	t.Run = task.Run
 	t.Prompt = task.Prompt
+	t.Hide = task.Hide
 	return nil
 }
