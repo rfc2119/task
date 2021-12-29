@@ -146,7 +146,7 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 
 	if len(origTask.Status) > 0 {
 		// Evaluate the live variables {{.CHECKSUM}} and {{.TIMESTAMP}}
-		for _, checker := range []status.Checker{e.timestampChecker(&new), e.checksumChecker(&new)} {
+		for _, checker := range []status.Checker{e.timestampChecker(&newT), e.checksumChecker(&newT)} {
 			value, err := checker.Value()
 			if err != nil {
 				return nil, err
@@ -163,8 +163,8 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 
 	// Source global init script
 	if origTask.ShellRc == "" {
-		new.ShellRc = e.Taskfile.ShellRc
+		newT.ShellRc = e.Taskfile.ShellRc
 	}
 
-	return &new, r.Err()
+	return &newT, r.Err()
 }

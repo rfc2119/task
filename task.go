@@ -594,10 +594,10 @@ func (e *Executor) runPrompt(ctx context.Context, t *taskfile.Task) error {
 		// FIXME: do we have to compile the whole task ?
 		temp, _ := e.CompiledTask(taskfile.Call{Task: t.Task, Vars: t.Vars})
 
-		err := execext.RunCommand(ctx, &execext.RunCommandOptions{
+		_, err := execext.RunCommand(ctx, &execext.RunCommandOptions{
 			Command: temp.Prompt.Validate.Sh,
 			Env:     getEnviron(t),
-		})
+		}, nil)
 
 		if err != nil {
 			return fmt.Errorf("validation failed: %v", err)
@@ -622,12 +622,12 @@ func (e *Executor) runPrompt(ctx context.Context, t *taskfile.Task) error {
 				} else {
 					// Execute the command(s) within "sh:" field and capture the output
 					var out bytes.Buffer
-					err := execext.RunCommand(context.Background(), &execext.RunCommandOptions{
+					_, err := execext.RunCommand(context.Background(), &execext.RunCommandOptions{
 						Command: option.Msg.Sh,
 						Dir:     t.Dir,
 						Env:     getEnviron(t),
 						Stdout:  &out,
-					})
+					}, nil)
 					if err != nil {
 						e.Logger.VerboseOutf(logger.Yellow, "command %s at prompt %s exited abnormally: %v", option.Msg.Sh, t.Name(), err)
 						return err
@@ -636,7 +636,7 @@ func (e *Executor) runPrompt(ctx context.Context, t *taskfile.Task) error {
 				}
 			}
 			if _, ok := optionsMap[option.Value]; !ok {
-				optionsMap[option.Value] = true
+				optionsMap[option.Value] = struct{}{}
 				options = append(options, option.Value)
 			}
 		}
