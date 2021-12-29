@@ -1,6 +1,7 @@
 package task
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/go-task/task/v3/internal/compiler"
 	compilerv2 "github.com/go-task/task/v3/internal/compiler/v2"
 	compilerv3 "github.com/go-task/task/v3/internal/compiler/v3"
@@ -355,6 +357,11 @@ func (e *Executor) RunTask(ctx context.Context, call taskfile.Call) error {
 			e.Logger.Errf(logger.Red, "task: cannot make directory %q: %v", t.Dir, err)
 		}
 
+		if t.Prompt != nil {
+			if err := e.runPrompt(ctx, t); err != nil {
+				e.Logger.Errf(logger.Red, "task: prompt execution failed: %v", err)
+			}
+		}
 		for i := range t.Cmds {
 			if err := e.runCommand(ctx, t, i); err != nil {
 				if err2 := e.statusOnError(t); err2 != nil {
@@ -523,4 +530,160 @@ func (e *Executor) startExecution(ctx context.Context, t *taskfile.Task, execute
 	e.executionHashesMutex.Unlock()
 
 	return execute(ctx)
+}
+
+// Run the Prompt setup based on the YAML configuration
+func (e *Executor) runPrompt(ctx context.Context, t *taskfile.Task) error {
+	// Set the Answer Task
+	if t.Prompt.Answer != nil {
+		t.Prompt.Answer.Task = fmt.Sprintf("%s.%s", t.Task, "answer")
+		e.Taskfile.Tasks[t.Prompt.Answer.Task] = t.Prompt.Answer
+		e.taskCallCount[t.Prompt.Answer.Task] = new(int32)
+		e.mkdirMutexMap[t.Prompt.Answer.Task] = &sync.Mutex{}
+	}
+
+	var (
+		prompt survey.Prompt
+		// Used by a couple of prompt types
+		inputText string
+	)
+
+	funcValidateAndRunAnswer := func(answer string) error {
+		if t.Vars != nil {
+			t.Vars.Set("ANSWER", taskfile.Var{Static: answer})
+		} else {
+			v := taskfile.Vars{}
+			v.Set("ANSWER", taskfile.Var{Static: answer})
+			t.Vars = &v
+		}
+		// FIXME: do we have to compile the whole task ?
+		temp, _ := e.CompiledTask(taskfile.Call{Task: t.Task, Vars: t.Vars})
+
+		err := execext.RunCommand(ctx, &execext.RunCommandOptions{
+			Command: temp.Prompt.Validate.Sh,
+			Env:     getEnviron(t),
+		})
+
+		if err != nil {
+			return fmt.Errorf("validation failed: %v", err)
+		}
+		return e.RunTask(ctx, taskfile.Call{Task: t.Prompt.Answer.Task, Vars: t.Vars})
+	}
+
+	// A common procedure used by Select and MultiSelect prompt types.
+	selectItemsFunc := func(isMultiSelection bool) error {
+		var (
+			options  []string
+			selected []string
+			// Used to represent a set to store unique options
+			optionsMap = make(map[string]struct{}, len(t.Prompt.Options))
+		)
+
+		// Parse `prompt` options
+		for _, option := range t.Prompt.Options {
+			if option.Value == "" && option.Msg != nil {
+				if option.Msg.Value != "" {
+					option.Value = option.Msg.Value
+				} else {
+					// Execute the command(s) within "sh:" field and capture the output
+					var out bytes.Buffer
+					err := execext.RunCommand(context.Background(), &execext.RunCommandOptions{
+						Command: option.Msg.Sh,
+						Dir:     t.Dir,
+						Env:     getEnviron(t),
+						Stdout:  &out,
+					})
+					if err != nil {
+						e.Logger.VerboseOutf(logger.Yellow, "command %s at prompt %s exited abnormally: %v", option.Msg.Sh, t.Name(), err)
+						return err
+					}
+					option.Value = strings.TrimRight(out.String(), " \n")
+				}
+			}
+			if _, ok := optionsMap[option.Value]; !ok {
+				optionsMap[option.Value] = true
+				options = append(options, option.Value)
+			}
+		}
+
+		// Use either Select or MultiSelect and validate each selection
+		if isMultiSelection {
+			prompt = &survey.MultiSelect{
+				Message: t.Prompt.Message,
+				Options: options,
+			}
+			survey.AskOne(prompt, &selected)
+		} else {
+			var s string
+			prompt = &survey.Select{
+				Message: t.Prompt.Message,
+				Options: options,
+			}
+			survey.AskOne(prompt, &s)
+			selected = append(selected, s)
+		}
+		for i := 0; i < len(selected); i++ {
+			if err := funcValidateAndRunAnswer(selected[i]); err != nil {
+				return err
+			}
+
+		}
+
+		return nil
+	}
+	switch t.Prompt.Type {
+	case "input":
+		prompt := &survey.Input{
+			Message: t.Prompt.Message,
+		}
+		survey.AskOne(prompt, &inputText)
+		if err := funcValidateAndRunAnswer(inputText); err != nil {
+			return err
+		}
+
+	case "multiline":
+		prompt = &survey.Multiline{
+			Message: t.Prompt.Message,
+		}
+		survey.AskOne(prompt, &inputText)
+
+		if err := funcValidateAndRunAnswer(inputText); err != nil {
+			return err
+		}
+	case "password":
+		prompt = &survey.Password{
+			Message: t.Prompt.Message,
+		}
+		survey.AskOne(prompt, &inputText)
+
+		if err := funcValidateAndRunAnswer(inputText); err != nil {
+			return err
+		}
+
+	case "confirm":
+		var yes bool
+		prompt = &survey.Confirm{
+			Message: t.Prompt.Message,
+		}
+		survey.AskOne(prompt, &yes)
+		if yes {
+			if err := e.RunTask(ctx, taskfile.Call{Task: t.Prompt.Answer.Task}); err != nil {
+				return err
+			}
+		}
+
+	case "select":
+		if err := selectItemsFunc(false); err != nil {
+			return err
+		}
+
+	case "multi_select":
+		if err := selectItemsFunc(true); err != nil {
+			return err
+		}
+
+	default:
+		e.Logger.Errf(logger.Cyan, "`Invalid option`")
+	}
+	return nil
 }

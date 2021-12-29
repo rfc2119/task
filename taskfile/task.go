@@ -24,6 +24,7 @@ type Task struct {
 	Prefix        string
 	IgnoreError   bool
 	Run           string
+	Prompt        *Prompt
 }
 
 func (t *Task) Name() string {
@@ -65,6 +66,7 @@ func (t *Task) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		Prefix        string
 		IgnoreError   bool `yaml:"ignore_error"`
 		Run           string
+		Prompt        *Prompt
 	}
 	if err := unmarshal(&task); err != nil {
 		return err
@@ -87,5 +89,6 @@ func (t *Task) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	t.Prefix = task.Prefix
 	t.IgnoreError = task.IgnoreError
 	t.Run = task.Run
+	t.Prompt = task.Prompt
 	return nil
 }

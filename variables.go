@@ -45,6 +45,12 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 
 	r := templater.Templater{Vars: vars, RemoveNoValue: v >= 3.0}
 
+	/// TODO: improve this
+	replacePrompt := origTask.Prompt
+	if origTask.Prompt != nil && r.Vars.Mapping["ANSWER"].Static != "" {
+		replacePrompt.Validate.Sh = r.Replace(origTask.Prompt.Validate.Sh)
+	}
+
 	newT := taskfile.Task{
 		Task:        origTask.Task,
 		Label:       r.Replace(origTask.Label),
@@ -53,7 +59,7 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 		Sources:     r.ReplaceSlice(origTask.Sources),
 		Generates:   r.ReplaceSlice(origTask.Generates),
 		Dir:         r.Replace(origTask.Dir),
-		Vars:        nil,
+		Vars:        r.ReplaceVars(origTask.Vars),
 		Env:         nil,
 		Silent:      origTask.Silent,
 		Interactive: origTask.Interactive,
@@ -61,6 +67,7 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 		Prefix:      r.Replace(origTask.Prefix),
 		IgnoreError: origTask.IgnoreError,
 		Run:         r.Replace(origTask.Run),
+		Prompt:      replacePrompt,
 	}
 	newT.Dir, err = execext.Expand(newT.Dir)
 	if err != nil {
