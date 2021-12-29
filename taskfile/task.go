@@ -7,6 +7,7 @@ type Tasks map[string]*Task
 type Task struct {
 	Task          string
 	ShellRc       string
+	Alias         string
 	Cmds          []*Cmd
 	Deps          []*Dep
 	Label         string
@@ -53,6 +54,7 @@ func (t *Task) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	var task struct {
 		ShellRc       string `yaml:"shell_rc"`
+		Alias         string
 		Cmds          []*Cmd
 		Deps          []*Dep
 		Label         string
@@ -81,6 +83,7 @@ func (t *Task) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	t.ShellRc = task.ShellRc
 	t.Cmds = task.Cmds
 	t.Deps = task.Deps
+	t.Alias = task.Alias
 	t.Label = task.Label
 	t.Desc = task.Desc
 	t.Summary = task.Summary

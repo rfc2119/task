@@ -12,6 +12,7 @@ import (
 )
 
 // PrintTasksHelp prints help os tasks that have a description
+// This is primarily used by `task --list`
 func (e *Executor) PrintTasksHelp() {
 	tasks := e.tasksWithDesc()
 	if len(tasks) == 0 {
@@ -27,7 +28,11 @@ func (e *Executor) PrintTasksHelp() {
 		// FIXME: task.Hide should offer the truth value
 		isHidden, _ = strconv.ParseBool(strings.TrimSpace(task.Hide))
 		if !isHidden {
-			fmt.Fprintf(w, "* %s: \t%s\n", task.Name(), task.Desc)
+			if task.Alias != "" {
+				fmt.Fprintf(w, "* %s: \t%s (alias: %s)\n", task.Name(), task.Desc, task.Alias)
+			} else {
+				fmt.Fprintf(w, "* %s: \t%s\n", task.Name(), task.Desc)
+			}
 		}
 	}
 	w.Flush()

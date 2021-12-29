@@ -231,6 +231,13 @@ func start(calledFromRepl bool) {
 		return
 	}
 
+	// Identify task aliases
+	aliasesMap := make(map[string]string)
+	for _, task := range e.Taskfile.Tasks {
+		if task.Alias != "" {
+			aliasesMap[task.Alias] = task.Task
+		}
+	}
 	if list {
 		if e.FancyLogger != nil {
 			e.FancyPrintTasksHelp()
@@ -254,6 +261,14 @@ func start(calledFromRepl bool) {
 		calls, globals = args.ParseV3(tasksAndVars...)
 	} else {
 		calls, globals = args.ParseV2(tasksAndVars...)
+	}
+
+	// Resolve task aliases beffore execution
+	for callIdx, c := range calls {
+		if _, ok := e.Taskfile.Tasks[c.Task]; !ok {
+			calls[callIdx] = taskfile.Call{Task: aliasesMap[c.Task], Vars: c.Vars}
+			callIdx++
+		}
 	}
 
 	globals.Set("CLI_ARGS", taskfile.Var{Static: cliArgs})
