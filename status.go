@@ -33,7 +33,7 @@ func (e *Executor) isTaskUpToDate(ctx context.Context, t *taskfile.Task) (bool, 
 		return false, nil
 	}
 
-	if *e.taskCallCount[t.Task] > 1 && t.CacheStatus {
+	if *e.taskCallCount[t.Task] > 1 && t.InitialStatus {
 		e.Logger.VerboseOutf(logger.Yellow, "task: task %s status is cached. Will not check for its status", t.Name())
 		return true, nil
 	}

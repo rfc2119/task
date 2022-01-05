@@ -16,7 +16,7 @@ type Task struct {
 	Sources       []string
 	Generates     []string
 	Status        []string
-	CacheStatus   bool
+	InitialStatus bool
 	Preconditions []*Precondition
 	Dir           string
 	Vars          *Vars
@@ -63,7 +63,7 @@ func (t *Task) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		Sources       []string
 		Generates     []string
 		Status        []string
-		CacheStatus   bool `yaml:"cache_status"`
+		InitialStatus bool `yaml:"initial_status"`
 		Preconditions []*Precondition
 		Dir           string
 		Vars          *Vars
@@ -90,7 +90,7 @@ func (t *Task) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	t.Sources = task.Sources
 	t.Generates = task.Generates
 	t.Status = task.Status
-	t.CacheStatus = task.CacheStatus
+	t.InitialStatus = task.InitialStatus
 	t.Preconditions = task.Preconditions
 	t.Dir = task.Dir
 	t.Vars = task.Vars

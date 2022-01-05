@@ -64,7 +64,7 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 		Dir:         r.Replace(origTask.Dir),
 		Vars:        r.ReplaceVars(origTask.Vars),
 		Env:         nil,
-		CacheStatus: origTask.CacheStatus,
+		InitialStatus: origTask.InitialStatus,
 		Silent:      origTask.Silent,
 		Interactive: origTask.Interactive,
 		Method:      r.Replace(origTask.Method),
@@ -75,6 +75,7 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 		Hide:        r.Replace(origTask.Hide),
 		ShellRc:     r.Replace(origTask.ShellRc),
 	}
+
 	newT.Dir, err = execext.Expand(newT.Dir)
 	if err != nil {
 		return nil, err
