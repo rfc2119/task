@@ -46,22 +46,22 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 	r := templater.Templater{Vars: vars, RemoveNoValue: v >= 3.0}
 
 	new := taskfile.Task{
-		Task:        origTask.Task,
-		Label:       r.Replace(origTask.Label),
-		Desc:        r.Replace(origTask.Desc),
-		Summary:     r.Replace(origTask.Summary),
-		Sources:     r.ReplaceSlice(origTask.Sources),
-		Generates:   r.ReplaceSlice(origTask.Generates),
-		Dir:         r.Replace(origTask.Dir),
-		Vars:        nil,
-		Env:         nil,
-		CacheStatus: origTask.CacheStatus,
-		Silent:      origTask.Silent,
-		Interactive: origTask.Interactive,
-		Method:      r.Replace(origTask.Method),
-		Prefix:      r.Replace(origTask.Prefix),
-		IgnoreError: origTask.IgnoreError,
-		Run:         r.Replace(origTask.Run),
+		Task:          origTask.Task,
+		Label:         r.Replace(origTask.Label),
+		Desc:          r.Replace(origTask.Desc),
+		Summary:       r.Replace(origTask.Summary),
+		Sources:       r.ReplaceSlice(origTask.Sources),
+		Generates:     r.ReplaceSlice(origTask.Generates),
+		Dir:           r.Replace(origTask.Dir),
+		Vars:          nil,
+		Env:           nil,
+		InitialStatus: origTask.InitialStatus,
+		Silent:        origTask.Silent,
+		Interactive:   origTask.Interactive,
+		Method:        r.Replace(origTask.Method),
+		Prefix:        r.Replace(origTask.Prefix),
+		IgnoreError:   origTask.IgnoreError,
+		Run:           r.Replace(origTask.Run),
 	}
 	new.Dir, err = execext.Expand(new.Dir)
 	if err != nil {
