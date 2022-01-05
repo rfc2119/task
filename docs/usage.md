@@ -395,6 +395,7 @@ tasks:
       - test -d directory
       - test -f directory/file1.txt
       - test -f directory/file2.txt
+    initial_status: false
 ```
 
 Normally, you would use `sources` in combination with
@@ -418,7 +419,11 @@ up-to-date.
 Also, `task --status [tasks]...` will exit with a non-zero exit code if any of
 the tasks are not up-to-date.
 
-### Using programmatic checks to cancel execution of an task and it's dependencies
+In addition, if you only need to run time-consuming `status` checks once, you may
+set the additional field `initial_status` to `true` (see also the
+[run once](#limiting-when-tasks-run) field)
+
+### Using programmatic checks to cancel execution of a task and its dependencies
 
 In addition to `status` checks, there are also `preconditions` checks, which are
 the logical inverse of `status` checks.  That is, if you need a certain set of
