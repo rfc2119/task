@@ -6,7 +6,7 @@ Run is a fork of [Task](https://github.com/go-task/task)
 
 ### Prompt
 
-```
+```yaml
 # A prompt field provides an interactive method of getting user data
 # In addition, it controls execution with the `validate` sub-field
 # which, on correct input, executes the task `answer`
@@ -38,7 +38,7 @@ Run is a fork of [Task](https://github.com/go-task/task)
 ```
 
 ### Initial Shell Script
-```
+```yaml
 version: '3'
 
 # initial_rc is used to load common shell scripts or functions
@@ -69,7 +69,7 @@ tasks:
       - sleep 2   # doing some work
 ```
 ### Hide tasks from being listed
-```
+```yaml
 
 # The `hide` field allows a task to not be listed with task --list
 # It can be also templated using Go templates
@@ -116,7 +116,7 @@ tasks:
 On running `task default` from the command line, only the first execution of task `generate-files` is done
 ### Aliases
 From the command line, you may call a task by its alias instead of its name
-```
+```yaml
   echo-with-errors-ignored:
     desc: Echoes a string but with errors ignored
     # Try calling the task from the command line as `task hello`
@@ -171,7 +171,7 @@ user@user:$
 ### Fancy listing
 `task --list` uses the [list](https://github.com/charmbracelet/bubbles#list) component from bubbletea
 
-![bubbletea_list](https://asciinema.org/a/a2BhWmRtXVQLHwDOYKsYOIWfb)
+[![bubbletea_list_demo](https://asciinema.org/a/sem2Ac3yZIUJ03HTMHyOEOq7I)](https://asciinema.org/a/sem2Ac3yZIUJ03HTMHyOEOq7I)
 
 ### [WIP] Progress bar
 Trach the issue [here](https://github.com/charmbracelet/bubbletea/issues/179)
