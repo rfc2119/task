@@ -238,14 +238,6 @@ func start(calledFromRepl bool) {
 			aliasesMap[task.Alias] = task.Task
 		}
 	}
-	if list {
-		if e.FancyLogger != nil {
-			e.FancyPrintTasksHelp()
-		} else {
-			e.PrintTasksHelp()
-		}
-		return
-	}
 
 	var (
 		calls   []taskfile.Call
@@ -287,12 +279,19 @@ func start(calledFromRepl bool) {
 	}
 
 	if list {
-		// e.PrintTasksHelp()
-		// return
-		if err := e.RunUI(ctx); err != nil {
-			fmt.Println("error running interface:", err)
+		if !calledFromRepl {
+			// TODO: error handling
+			if err := e.RunUI(ctx); err != nil {
+				fmt.Println("error running interface:", err)
+			}
+			return
 		}
-		fmt.Println("returned from bubbleteam")
+		// Normal listing if not whithin the REPL
+		if e.FancyLogger != nil {
+			e.FancyPrintTasksHelp()
+		} else {
+			e.PrintTasksHelp()
+		}
 		return
 	}
 

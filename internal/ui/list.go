@@ -56,7 +56,7 @@ func NewTasksModel(tasks taskfile.Tasks, c chan string) *tasksModel {
 	var items = make([]list.Item, 0, len(tasks))
 	for _, t := range tasks {
 		// TODO: add alias here after the alias feature branch ios merged
-		items = append(items, taskItem{name: t.Name(), alias: ""})
+		items = append(items, taskItem{name: t.Name(), alias: t.Alias})
 	}
 	// NOTE: this sorting seems painful, but what else to do ?
 	var k, p taskItem
