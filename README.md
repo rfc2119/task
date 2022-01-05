@@ -41,9 +41,9 @@ Run is a fork of [Task](https://github.com/go-task/task)
 ```yaml
 version: '3'
 
-# initial_rc is used to load common shell scripts or functions
-# A global initial_rc
-initial_rc: |
+# shell_rc is used to load common shell scripts or functions
+# A global shell_rc
+shell_rc: |
     func(){
       echo "global function called!"
     }
@@ -51,14 +51,14 @@ initial_rc: |
 tasks:
 
   init-script-global:
-    desc: Testing a local initial_rc field
+    desc: Testing a local shell_rc field
     cmds:
-    - echo "trying out the global initial_rc field"
+    - echo "trying out the global shell_rc field"
     - func
 
   init-script:
-    desc: Testing a local initial_rc field
-    initial_rc: |
+    desc: Testing a local shell_rc field
+    shell_rc: |
       export VAR_INSIDE_INIT_SCRIPT="Hello from init script"
       func(){
         echo "local function called!"
@@ -150,7 +150,7 @@ task> --list
     echo-with-errors-ignored │ hello │ Echoes a string but with               
                              │       │ errors ignored                         
     generate-files           │       │ Generate files diescription            
-    init-script              │       │ Testing the new initial_rc field         
+    init-script              │       │ Testing the new shell_rc field         
     simple                   │       │ A simple task with no extra            
                              │       │ features                               
     sleep                    │       │ zzzzzzz                                
