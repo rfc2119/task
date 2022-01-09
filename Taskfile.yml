@@ -6,6 +6,7 @@ includes:
     dir: ./docs
 
 vars:
+  PROJECT_TYPE: golang
   GIT_COMMIT:
     sh: git log -n 1 --format=%h
 
@@ -26,6 +27,8 @@ tasks:
       - go install -v -ldflags="-w -s -X main.version={{.GIT_COMMIT}}" ./cmd/task
 
   mod:
+    alias: moddddd
+    when: false
     desc: Downloads and tidy Go modules
     cmds:
       - go mod download
@@ -48,15 +51,41 @@ tasks:
 
   lint:
     desc: Runs golint
+    log:
+      error: 'Log message that shows up if the cmds return exit code 0'
+      start: 'Log message to show before Go starts running the task logic (including env scripts)'
+      success: 'Log message to show if the cmds return exit code 1 or greater'
     cmds:
       - golint {{catLines .GO_PACKAGES}}
     silent: true
 
   test:
     desc: Runs test suite
+    alias: gotest
+    hide: '{{if eq .PROJECT_TYPE "golang"}} false {{else}} true {{end}}'
+    summary: |
+      # Runs the Go Tests
+
+      This, this, and that.
+
+      * List
+      * Another item
+
+      1. Another list
+      2. Tada [Google](https://www.google.com)
+    log:
+      error: 'Log message that shows up if the cmds return exit code 0'
+      start: 'Log message to show before Go starts running the task logic (including env scripts)'
+      success: 'Log message to show if the cmds return exit code 1 or greater'
     deps: [install]
     cmds:
       - go test {{catLines .GO_PACKAGES}}
+      - |
+        if [ "$PATH" == 'example' ]; then
+          if [ "$SOMETHING" == 'double' ]; then
+            echo 'yo'
+          fi
+        fi
 
   test-release:
     desc: Tests release process without publishing
