@@ -357,7 +357,11 @@ func (e *Executor) RunTask(ctx context.Context, call taskfile.Call) error {
 	defer release()
 
 	return e.startExecution(ctx, t, func(ctx context.Context) error {
-		e.Logger.VerboseErrf(logger.Magenta, `task: "%s" started`, call.Task)
+		if t.LogMsg != nil && t.LogMsg.Start != "" {
+			e.Logger.Outf(logger.Magenta, t.LogMsg.Start)
+		} else {
+			e.Logger.VerboseErrf(logger.Magenta, `task: "%s" started`, call.Task)
+		}
 		timeBefore := time.Now()
 		if err := e.runDeps(ctx, t); err != nil {
 			return err
@@ -428,6 +432,9 @@ func (e *Executor) RunTask(ctx context.Context, call taskfile.Call) error {
 					continue
 				}
 
+				if t.LogMsg != nil && t.LogMsg.Error != "" {
+					e.Logger.Outf(logger.Magenta, t.LogMsg.Error)
+				}
 				return &taskRunError{t.Task, err}
 			}
 		}

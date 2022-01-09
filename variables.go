@@ -145,6 +145,14 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 		}
 	}
 
+	if origTask.LogMsg != nil {
+		new.LogMsg = &taskfile.LogMsg{
+			Start:   r.Replace(origTask.LogMsg.Start),
+			Error:   r.Replace(origTask.LogMsg.Error),
+			Success: r.Replace(origTask.LogMsg.Success),
+		}
+	}
+
 	if len(origTask.Status) > 0 {
 		// Evaluate the live variables {{.CHECKSUM}} and {{.TIMESTAMP}}
 		for _, checker := range []status.Checker{e.timestampChecker(&newT), e.checksumChecker(&newT)} {
