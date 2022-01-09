@@ -62,7 +62,7 @@ tasks:
   test:
     desc: Runs test suite
     alias: gotest
-    hide: '{{if eq .PROJECT_TYPE "golang"}} false {{else}} true {{end}}'
+    hide: '{{if eq .PROJECT_TYPE "golang"}}false{{else}}true{{end}}'
     summary: |
       # Runs the Go Tests
 
