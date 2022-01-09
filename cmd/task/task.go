@@ -281,16 +281,21 @@ func start(calledFromRepl bool) {
 	}
 
 	if menu {
-
-		// TODO: run normal listing within REPL
+		// --menu should not work
+		if calledFromRepl {
+			return
+		}
 		if err := e.RunUI(ctx); err != nil {
 			fmt.Println("error running interface:", err)
 		}
 		return
 	}
 	if list {
-		// TODO: do not forget fancy logger
-		e.PrintTasksHelp()
+		if e.FancyLogger != nil {
+			e.FancyPrintTasksHelp()
+		} else {
+			e.PrintTasksHelp()
+		}
 		return
 	}
 

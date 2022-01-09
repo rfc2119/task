@@ -54,26 +54,26 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 	}
 
 	newT := taskfile.Task{
-		Task:        origTask.Task,
-		Alias:       origTask.Alias,
-		Label:       r.Replace(origTask.Label),
-		Desc:        r.Replace(origTask.Desc),
-		Summary:     r.Replace(origTask.Summary),
-		Sources:     r.ReplaceSlice(origTask.Sources),
-		Generates:   r.ReplaceSlice(origTask.Generates),
-		Dir:         r.Replace(origTask.Dir),
-		Vars:        r.ReplaceVars(origTask.Vars),
-		Env:         nil,
+		Task:          origTask.Task,
+		Alias:         origTask.Alias,
+		Label:         r.Replace(origTask.Label),
+		Desc:          r.Replace(origTask.Desc),
+		Summary:       r.Replace(origTask.Summary),
+		Sources:       r.ReplaceSlice(origTask.Sources),
+		Generates:     r.ReplaceSlice(origTask.Generates),
+		Dir:           r.Replace(origTask.Dir),
+		Vars:          r.ReplaceVars(origTask.Vars),
+		Env:           nil,
 		InitialStatus: origTask.InitialStatus,
-		Silent:      origTask.Silent,
-		Interactive: origTask.Interactive,
-		Method:      r.Replace(origTask.Method),
-		Prefix:      r.Replace(origTask.Prefix),
-		IgnoreError: origTask.IgnoreError,
-		Run:         r.Replace(origTask.Run),
-		Prompt:      replacePrompt,
-		Hide:        r.Replace(origTask.Hide),
-		ShellRc:     r.Replace(origTask.ShellRc),
+		Silent:        origTask.Silent,
+		Interactive:   origTask.Interactive,
+		Method:        r.Replace(origTask.Method),
+		Prefix:        r.Replace(origTask.Prefix),
+		IgnoreError:   origTask.IgnoreError,
+		Run:           r.Replace(origTask.Run),
+		Prompt:        replacePrompt,
+		Hide:          r.Replace(origTask.Hide),
+		ShellRc:       r.Replace(origTask.ShellRc),
 	}
 
 	newT.Dir, err = execext.Expand(newT.Dir)
@@ -146,7 +146,7 @@ func (e *Executor) compiledTask(call taskfile.Call, evaluateShVars bool) (*taskf
 	}
 
 	if origTask.LogMsg != nil {
-		new.LogMsg = &taskfile.LogMsg{
+		newT.LogMsg = &taskfile.LogMsg{
 			Start:   r.Replace(origTask.LogMsg.Start),
 			Error:   r.Replace(origTask.LogMsg.Error),
 			Success: r.Replace(origTask.LogMsg.Success),
